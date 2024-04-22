@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation,Link,useNavigate } from "react-router-dom";
+import { useLocation,useNavigate } from "react-router-dom";
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
