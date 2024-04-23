@@ -25,14 +25,17 @@ const SignUp = () => {
     try{
       const  auth=getAuth()
       const userCredential =await createUserWithEmailAndPassword(auth,formData.email,formData.password )
+      //console.log(userCredential.user)
       updateProfile(auth.currentUser,{
       displayName:formData.name
       })
+      //console.log(userCredential.user)
       const user = userCredential.user;
       const formDataCopy={...formData}
       delete formDataCopy.password;
       formDataCopy.timeStamp=serverTimestamp();
       await setDoc(doc(db,"users",user.uid),formDataCopy)
+     // console.log(formDataCopy)
       toast.success(`Welcome ${user.displayName}`)
       navigate("/")
     }catch(error){
