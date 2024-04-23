@@ -3,12 +3,42 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import OAuth from '../components/OAuth';
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+// go firebase authentication and follow steps
+import { getAuth ,createUserWithEmailAndPassword ,updateProfile} from 'firebase/auth';
+import { db } from '../firebase';
+import { serverTimestamp, setDoc,doc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 const SignUp = () => {
   const [formData, setFormData] = useState({
     name:"",
     email: "",
     password: "",
   });
+  const navigate = useNavigate()
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    if(!formData.name || !formData.email || !formData.password){
+      toast.error("Please fill all the fields")
+      return;
+    }
+    try{
+      const  auth=getAuth()
+      const userCredential =await createUserWithEmailAndPassword(auth,formData.email,formData.password )
+      updateProfile(auth.currentUser,{
+      displayName:formData.name
+      })
+      const user = userCredential.user;
+      const formDataCopy={...formData}
+      delete formDataCopy.password;
+      formDataCopy.timeStamp=serverTimestamp();
+      await setDoc(doc(db,"users",user.uid),formDataCopy)
+      toast.success("User created successfully")
+      navigate("/")
+    }catch(error){
+     toast.error(error.message)
+    }
+  }
   const [showPass, setShowPass] = useState(false);
   return (
     <>
@@ -22,7 +52,7 @@ const SignUp = () => {
           />
         </div>
         <div className="w-full md:w-[67%] lg:w-[40%] lg:ml-20">
-          <form>
+          <form onSubmit={onSubmit}>
             <input
               placeholder="Enter name"
               className="w-full px-4 py-2 text-xl mb-6
@@ -47,6 +77,7 @@ const SignUp = () => {
             />
             <div className="relative">
               <input
+                placeholder="Enter Password"
                 className="w-full px-4 py-2 text-xl mb-6
                 text-gray-700 bg-white rounded  border-gray-300 transition ease-in-out"
                 type={showPass ? "text" : "password"}
@@ -66,7 +97,7 @@ const SignUp = () => {
                 />
               ) : (
                 <AiFillEyeInvisible
-                  className="absolute top-1 
+                  className="absolute top-3
                 right-3 text-xl cursor-pointer"
                   onClick={() => {
                     setShowPass((prevState) => !prevState);

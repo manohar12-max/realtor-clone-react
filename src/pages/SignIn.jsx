@@ -3,13 +3,34 @@ import { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link } from "react-router-dom";
 import OAuth from "../components/OAuth";
-
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 const SignIn = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const navigate = useNavigate()
   const [showPass, setShowPass] = useState(false);
+  const onSubmit=async (e)=>{
+    if( !formData.email || !formData.password){
+      toast.error("Please fill all the fields")
+      return;
+    }
+    e.preventDefault();
+    try{
+      const auth = getAuth();
+      const userCredential=await signInWithEmailAndPassword(auth, formData.email, formData.password)
+    const user = userCredential.user;
+    toast.success("Sig in successfully")
+    navigate("/")
+    
+    }
+    catch(error){
+      toast.error(error.message)
+    }
+  }
   return (
     <>
       <h1 className="text-3xl text-center mt-6 font-bold"> Sign In </h1>
@@ -22,7 +43,7 @@ const SignIn = () => {
           />
         </div>
         <div className="w-full md:w-[67%] lg:w-[40%] lg:ml-20">
-          <form>
+          <form onSubmit={onSubmit}>
             <input
               placeholder="Enter Email"
               className="w-full px-4 py-2 text-xl mb-6
@@ -36,6 +57,7 @@ const SignIn = () => {
             />
             <div className="relative">
               <input
+                placeholder="Enter Password"
                 className="w-full px-4 py-2 text-xl mb-6
                 text-gray-700 bg-white rounded  border-gray-300 transition ease-in-out"
                 type={showPass ? "text" : "password"}
