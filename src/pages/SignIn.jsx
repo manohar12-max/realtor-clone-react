@@ -23,7 +23,7 @@ const SignIn = () => {
       const auth = getAuth();
       const userCredential=await signInWithEmailAndPassword(auth, formData.email, formData.password)
     const user = userCredential.user;
-    toast.success("Sig in successfully")
+    toast.success(`Welcome ${user.displayName}`)
     navigate("/")
     
     }

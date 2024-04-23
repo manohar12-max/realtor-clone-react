@@ -33,7 +33,7 @@ const SignUp = () => {
       delete formDataCopy.password;
       formDataCopy.timeStamp=serverTimestamp();
       await setDoc(doc(db,"users",user.uid),formDataCopy)
-      toast.success("User created successfully")
+      toast.success(`Welcome ${user.displayName}`)
       navigate("/")
     }catch(error){
      toast.error(error.message)
