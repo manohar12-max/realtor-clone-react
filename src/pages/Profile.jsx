@@ -5,6 +5,7 @@ import { getAuth, updateProfile } from "firebase/auth";
 import { toast } from "react-toastify";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { FcHome } from "react-icons/fc";
 
 const Profile = () => {
   const auth = getAuth();
@@ -23,24 +24,24 @@ const Profile = () => {
     }
   };
   const { name, email } = formData;
-  const onSubmit=async ()=>{
-    try{
-      if(auth.currentUser.displayName != name){
+  const onSubmit = async () => {
+    try {
+      if (auth.currentUser.displayName != name) {
         //update display name in firebase auth
-        await updateProfile(auth.currentUser,{
-          displayName:name
-        })
+        await updateProfile(auth.currentUser, {
+          displayName: name,
+        });
         //update display name in firebase auth
-        const docRef=doc(db,"users",auth.currentUser.uid)
-        await updateDoc(docRef,{
-          name
-        })
+        const docRef = doc(db, "users", auth.currentUser.uid);
+        await updateDoc(docRef, {
+          name,
+        });
       }
-      toast.success("Profile updated successfully")
-    }catch (error){
+      toast.success("Profile updated successfully");
+    } catch (error) {
       toast.error(error);
     }
-  }
+  };
   const onChange = (e) => {
     setFormData((prevState) => ({
       ...prevState,
@@ -77,12 +78,11 @@ const Profile = () => {
                 Do you want to change your name?
                 <Link
                   onClick={() => {
-                    changeDetail && onSubmit()
+                    changeDetail && onSubmit();
                     setChangeDetail(!changeDetail);
                   }}
                   className="text-red-600 hover:text-red-800 transition duration-200 ease-in-out ml-1"
                 >
-          
                   {changeDetail ? "Apply Change" : "Edit"}
                 </Link>
               </p>
@@ -96,11 +96,20 @@ const Profile = () => {
                 </Link>
               </p>
             </div>
+
             <button
-              className="w-full bg-blue-600 text-white px-7 py-3 text-sm font-medium uppercase rounded shadow-md hover:bg-blue-700 transition duration-200 ease-in-out hover:shadow-lg active:bg-blue-800"
+              className=" w-full bg-blue-600
+               text-white px-7 py-3 text-sm font-medium 
+               uppercase rounded shadow-md
+                hover:bg-blue-700 transition
+                 duration-200 ease-in-out hover:shadow-lg
+                   active:bg-blue-800 "
               type="submit"
             >
-              Sign in
+              <Link to="/create-listing" className="flex justify-center items-center">
+                <FcHome className="mr-2 text-2xl bg-red-200 rounded-full p-1 border-2" />
+                Sell or rent your home
+              </Link>
             </button>
           </form>
         </div>
