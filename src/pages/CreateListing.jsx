@@ -6,8 +6,7 @@ import { getAuth } from "firebase/auth";
 //use uuid for same images upload
   import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router-dom";
-import { serverTimestamp } from "firebase/database";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection,serverTimestamp } from "firebase/firestore";
 import {db} from "../firebase"
 const CreateListing = () => {
   const [geolocationEnabled, setGeolocationEnabled] = useState(false);
@@ -137,6 +136,7 @@ const CreateListing = () => {
     ...formData,
     imagesUrls,
     geolocation,
+    userRef:auth.currentUser.uid,
     timeStamp:serverTimestamp()
   }
   delete formDataCopy.images;

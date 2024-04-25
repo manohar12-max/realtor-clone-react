@@ -1,12 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAuth, updateProfile } from "firebase/auth";
 import { toast } from "react-toastify";
-import { doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { FcHome } from "react-icons/fc";
-
+import ListingItem from "../components/ListingItem";
 const Profile = () => {
   const auth = getAuth();
   const [formData, setFormData] = useState({
@@ -14,6 +22,8 @@ const Profile = () => {
     email: auth.currentUser.email,
   });
   const [changeDetail, setChangeDetail] = useState(false);
+  const [listings, setListings] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const onLogout = async () => {
     try {
@@ -48,8 +58,30 @@ const Profile = () => {
       [e.target.id]: e.target.value,
     }));
   };
+  useEffect(() => {
+    async function fetchUserListings() {
+      const listingRef = collection(db, "listings");
+      const q = query(
+        listingRef,
+        where("userRef", "==", auth.currentUser.uid),
+        orderBy("timeStamp","desc")
+      );
+      const querySnap = await getDocs(q);
+      let listings = [];
+      querySnap.forEach((doc) => {
+        return listings.push({
+          id: doc.id,
+          data: doc.data(),
+        });
+      });
+      setListings(listings);
+      setLoading(false);
+    }
+    fetchUserListings();
+  }, [auth.currentUser.uid]);
   return (
     <>
+      {console.log(listings)}
       <section className="max-w-6xl flex flex-col justify-center items-center">
         <h1 className="text-3xl text-center mt-6 font-bold">My Profile</h1>
         <div className="w-full md:w-[50%] mt-6 px-3 ">
@@ -106,7 +138,10 @@ const Profile = () => {
                    active:bg-blue-800 "
               type="submit"
             >
-              <Link to="/create-listing" className="flex justify-center items-center">
+              <Link
+                to="/create-listing"
+                className="flex justify-center items-center"
+              >
                 <FcHome className="mr-2 text-2xl bg-red-200 rounded-full p-1 border-2" />
                 Sell or rent your home
               </Link>
@@ -114,6 +149,25 @@ const Profile = () => {
           </form>
         </div>
       </section>
+      <div>
+      {!loading && listings.length > 0 && (
+          <>
+            <h2 className="text-2xl text-center font-semibold mb-6 mt-6">
+              My Listings
+            </h2>    
+            <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5  gap-4 px-4">
+              {listings.map((listing) => (
+                <ListingItem
+                  key={listing.id}
+                  id={listing.id}
+                  listing={listing.data}
+                  
+                />
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
     </>
   );
 };
