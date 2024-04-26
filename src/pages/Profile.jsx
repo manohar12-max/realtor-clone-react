@@ -5,6 +5,7 @@ import { getAuth, updateProfile } from "firebase/auth";
 import { toast } from "react-toastify";
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   orderBy,
@@ -58,13 +59,30 @@ const Profile = () => {
       [e.target.id]: e.target.value,
     }));
   };
+ async function onDelete(listId){
+  try{
+      if(window.confirm("Are you sure you want to delete")){
+        await deleteDoc(doc(db, "listings", listId));
+        const updatedListings =listings.filter((listing)=>listing.id != listId);
+        setListings(updatedListings)
+        toast.success("Listing deleted successfully")
+      }
+  }catch (error) {
+    toast.error(error.message);
+  }
+ }
+ function onEdit(listId){
+  navigate(`/edit-listing/${listId}`);
+ }
+
+
   useEffect(() => {
     async function fetchUserListings() {
       const listingRef = collection(db, "listings");
       const q = query(
         listingRef,
         where("userRef", "==", auth.currentUser.uid),
-        orderBy("timeStamp","desc")
+        orderBy("timeStamp", "desc")
       );
       const querySnap = await getDocs(q);
       let listings = [];
@@ -150,18 +168,23 @@ const Profile = () => {
         </div>
       </section>
       <div>
-      {!loading && listings.length > 0 && (
+        {!loading && listings.length > 0 && (
           <>
             <h2 className="text-2xl text-center font-semibold mb-6 mt-6">
               My Listings
-            </h2>    
+            </h2>
             <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5  gap-4 px-4">
               {listings.map((listing) => (
                 <ListingItem
                   key={listing.id}
                   id={listing.id}
                   listing={listing.data}
-                  
+                  onDelete={() => {
+                    onDelete(listing.id);
+                  }}
+                  onEdit={() => {
+                    onEdit(listing.id);
+                  }}
                 />
               ))}
             </ul>
