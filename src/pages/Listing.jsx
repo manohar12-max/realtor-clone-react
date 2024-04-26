@@ -7,10 +7,23 @@ import "swiper/css";
 import { EffectFade, Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/css/bundle";
 import Spinner from "../components/Spinner";
-import { FaBath, FaBed, FaChair, FaParking, FaShare, FaTable } from "react-icons/fa";
+import {
+  FaBath,
+  FaBed,
+  FaChair,
+  FaParking,
+  FaShare,
+  FaTable,
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 import { MdLocationOn } from "react-icons/md";
+import { getAuth } from "firebase/auth";
+import Contact from "../components/Contact";
+import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 const Listing = () => {
+  const auth = getAuth();
+  const position = [51.505, -0.09];
+  const [contactLandlord, setContactLandlord] = useState(false);
   const [listingApp, setListingApp] = useState({});
   const [loading, setLoading] = useState(true);
   const params = useParams();
@@ -77,12 +90,12 @@ const Listing = () => {
         <span
           className="bg-blue-500 font-semibold
          text-white p-1 rounded text-xs
-         absolute top-[120px] right-3 z-50"
+         fixed top-[120px] right-3 z-50"
         >
           Link Copied successfully
         </span>
       )}
-      <div className="flex flex-col md:flex-row max-w-6xl lg:mx-auto p-4 rounded-lg shadow-lg bg-white space-x-5">
+      <div className="flex flex-col md:flex-row max-w-6xl lg:mx-auto p-4 rounded-lg shadow-lg bg-white md:space-x-5">
         <div className=" w-full">
           <p className="text-2xl font-bold mb-3 text-blue-900">
             {listingApp.name}-${" "}
@@ -106,34 +119,77 @@ const Listing = () => {
               {listingApp.type == "rent" ? "Rent" : "Sale"}
             </p>
             {listingApp.offer && (
-              <p className="bg-green-800 w-full max-w-[200px] rounded-md p-1 text-white text-center font-semibold shadow-md">$ {+listingApp.regularPrice - +listingApp.discountedPrice} discount</p>
+              <p className="bg-green-800 w-full max-w-[200px] rounded-md p-1 text-white text-center font-semibold shadow-md">
+                $ {+listingApp.regularPrice - +listingApp.discountedPrice}{" "}
+                discount
+              </p>
             )}
-           
           </div>
           <div className=" mt-3 mb-3">
-            <p className=""> <span className="font-semibold"> Description- </span>  {listingApp.description} </p>
-            <ul className="flex   items-center space-x-2 lg:space-x-10 text-sm font-semibold ">
+            <p className="">
+              {" "}
+              <span className="font-semibold"> Description- </span>{" "}
+              {listingApp.description}{" "}
+            </p>
+            <ul className="flex  items-center space-x-10 text-sm font-semibold mb-2 ">
               <li className=" flex items-center whitespace-nowrap">
-                <FaBed className="text-lg mr-1 "/>
-                {+listingApp.bedrooms>1 ? `${listingApp.bedrooms} Beds` : `${listingApp.bedrooms} Bed`}
+                <FaBed className="text-lg mr-1 " />
+                {+listingApp.bedrooms > 1
+                  ? `${listingApp.bedrooms} Beds`
+                  : `${listingApp.bedrooms} Bed`}
               </li>
               <li className=" flex items-center whitespace-nowrap">
-                <FaBath/>
-                {+listingApp.bathrooms>1 ? `${listingApp.bathrooms} Baths` : `${listingApp.bathrooms} Bath`}
+                <FaBath />
+                {+listingApp.bathrooms > 1
+                  ? `${listingApp.bathrooms} Baths`
+                  : `${listingApp.bathrooms} Bath`}
+              </li>
+            </ul>
+            <ul className="flex  items-center space-x-2 lg:space-x-10 text-sm font-semibold ">
+              <li className=" flex items-center whitespace-nowrap">
+                <FaParking />
+                {listingApp.parking ? `Parking available` : `No parking spot`}
               </li>
               <li className=" flex items-center whitespace-nowrap">
-                <FaParking/>
-                {listingApp.parking  ? `Parking available` : `No parking spot`}
-              </li>
-              <li className=" flex items-center whitespace-nowrap">
-                <FaChair/>
-                {listingApp.furnished  ? `Furnished` : ""}
+                <FaChair />
+                {listingApp.furnished ? `Furnished` : ""}
               </li>
             </ul>
           </div>
+          {
+            //incase if page loaded  first we might get error cause auth is still loading this can be avoided by adding ?
+            listingApp.userRef !== auth.currentUser?.uid &&
+              !contactLandlord && (
+                <div className="mt-6">
+                  <button
+                    onClick={() => {
+                      setContactLandlord(true);
+                    }}
+                    className="w-full text center transition duration-150 ease-in-out px-7 py-3 bg-blue-600 uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg text-white font-medium"
+                  >
+                    Contact Landloard
+                  </button>
+                </div>
+              )
+          }
+          {contactLandlord && (
+            <Contact userRef={listingApp.userRef} listing={listingApp} />
+          )}
         </div>
-        <div className="bg-pink-500 w-full h-[200px] md:h-[400px] z-10 overflow-x-hidden mt-6 md:mt-0 md:ml-">
 
+        <div className=" w-full h-[200px] md:h-[400px] z-10 overflow-x-hidden mt-6 md:mt-0 md:ml-">
+          <MapContainer center={[listingApp.geolocation.lat,listingApp.geolocation.lng]} zoom={13} scrollWheelZoom={false}
+          style={ {height:"100%",width:"100%"}}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[listingApp.geolocation.lat,listingApp.geolocation.lng]}>
+              <Popup>
+                {listingApp.name} 
+              </Popup>
+            </Marker>
+          </MapContainer>
         </div>
       </div>
     </main>
