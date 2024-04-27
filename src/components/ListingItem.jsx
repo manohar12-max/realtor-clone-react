@@ -9,7 +9,7 @@ const ListingItem = ({ listing,id ,onDelete ,onEdit}) => {
     <li className="relative bg-white flex flex-col justify-between items-center shadow-md hover:shadow-xl rounded-md overflow-hidden transition-shadow duration-150 m-[10px]">
       <Link className="contents" to={`/category/${listing.type}/${id}`}>
         <img
-          className="h-[170px] object-cover hover:scale-105 transition-scale duration-200 ease-in"
+          className="h-[170px] w-full object-cover hover:scale-105 transition-scale duration-200 ease-in"
           loading="lazy"
           src={listing.imagesUrls[0]}
         />

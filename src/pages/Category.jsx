@@ -1,5 +1,6 @@
-import React from 'react'
-import { useEffect,useState } from 'react';
+import React from "react";
+import { useParams } from "react-router";
+import { useEffect, useState } from "react";
 import {
   collection,
   getDocs,
@@ -8,50 +9,53 @@ import {
   query,
   where,
   docs,
-  startAfter
+  startAfter,
 } from "firebase/firestore";
-import { db } from '../firebase';
-import { toast } from 'react-toastify';
-import ListingItem from "../components/ListingItem"
-import Spinner from "../components/Spinner"
-const Offers = () => {
-  const [offerListing, setOfferListing] = useState(null);
+import { db } from "../firebase";
+import { toast } from "react-toastify";
+import ListingItem from "../components/ListingItem";
+import Spinner from "../components/Spinner";
+const Category = () => {
   const [loading, setLoading] = useState(true);
-  // for load more button
-  const [lastFetchedListing,setLastFetchedListing] = useState(null)
+  const [listings, setListings] = useState(null);
+  const [lastFetchedListing, setLastFetchedListing] = useState(null);
+  const params = useParams();
   useEffect(() => {
-    async function getListing() {
+    async function fetchListings() {
       try {
-        const listingRef = collection(db, "listings");
-        const q = query(
-          listingRef,
-          where("offer", "==", true),
-          orderBy("timeStamp", "desc"),
-          limit(8)
-        );
+        const lisitngRef = collection(db, "listings");
+        const q = query(lisitngRef, 
+            where("type", "==", params.categoryName),
+        orderBy("timeStamp","desc"),
+    limit(8));
         const querySnap = await getDocs(q);
         const lastVisible=querySnap.docs[(querySnap.docs.length-1)]
         setLastFetchedListing(lastVisible);
         let listings = [];
         querySnap.forEach((doc) => {
-          return listings.push({ data: doc.data(), id: doc.id });
-        });
-        setOfferListing(listings);
-      } catch (error) {
-        toast.error("No offers found");
-      }finally{
+            return listings.push({
+              id: doc.id,
+              data: doc.data(),
+            });
+        })
+        setListings(listings);
+      } catch (e) {
+       
+        toast.error(e.message);
+      } finally {
         setLoading(false);
       }
     }
+    fetchListings();
+  },[params.categoryName]);
 
-    getListing();
-  }, []);
-  async function onFetchMoreListings(){
-    try {
+async function onFetchMoreListings(){
+     
+    try{
       const listingRef = collection(db, "listings");
       const q = query(
         listingRef,
-        where("offer", "==", true),
+        where("type", "==", params.categoryName),
         orderBy("timeStamp", "desc"),
         startAfter(lastFetchedListing),
         limit(4)
@@ -63,26 +67,27 @@ const Offers = () => {
       querySnap.forEach((doc) => {
         return listings.push({ data: doc.data(), id: doc.id });
       });
-      setOfferListing((prevstate)=>[...prevstate,...listings]);
-    } catch (error) {
-      toast.error("No offers found");
+      setListings((prevstate)=>[...prevstate,...listings]);
+    }catch(e){
+      toast.error(e.message);
     }finally{
-      setLoading(false)
-  }
+      setLoading(false);
+    }
 }
-  if (loading &&!offerListing) {
+
+  if (loading &&!listings) {
     return <Spinner />
   }
   return (
     <div className="max-w-6xl mx-auto px-3">
-      <h1 className="text-3xl text-center mt-6 font-bold mb-6">Offers</h1>
+      <h1 className="text-3xl text-center mt-6 font-bold mb-6 uppercase">{params.categoryName}</h1>
       {loading ? (
         <Spinner />
-      ) : offerListing && offerListing.length > 0 ? (
+      ) : listings && listings.length > 0 ? (
         <>
           <main>
             <ul className="sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-              {offerListing.map((listing) => (
+              {listings.map((listing) => (
                 <ListingItem
                   key={listing.id}
                   id={listing.id}
@@ -104,6 +109,6 @@ const Offers = () => {
       )}
     </div>
   );
-}
+};
 
-export default Offers
+export default Category;

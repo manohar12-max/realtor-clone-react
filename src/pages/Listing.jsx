@@ -50,7 +50,7 @@ const Listing = () => {
 
   return (
     <main>
-      {console.log(listingApp.imagesUrls)}
+     
       <Swiper
         modules={[Navigation, Pagination, Autoplay, EffectFade]}
         effect="fade"
@@ -172,7 +172,7 @@ const Listing = () => {
                 </div>
               )
           }
-          {contactLandlord && (
+          {contactLandlord  && (
             <Contact userRef={listingApp.userRef} listing={listingApp} />
           )}
         </div>
